@@ -10,8 +10,10 @@ import com.alien.bank.management.system.model.transaction.TransactionResponseMod
 import com.alien.bank.management.system.model.transaction.WithdrawRequestModel;
 import com.alien.bank.management.system.repository.AccountRepository;
 import com.alien.bank.management.system.repository.TransactionRepository;
+import com.alien.bank.management.system.service.NotificationService;
 import com.alien.bank.management.system.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
+    private final NotificationService notificationService;
 
     @Override
     public TransactionResponseModel deposit(DepositRequestModel request) {
@@ -33,6 +36,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         Long transactionId = performDeposit(account, request.getAmount());
+
+        // Email Notification
+        String subject = "Deposit Successful";
+        String body = "You deposited $" + request.getAmount();
+        notificationService.sendTransactionEmail("demo@inbox.mailtrap.io", subject, body);
 
         return transactionMapper.toResponseModel(transactionId, request.getAmount(), account.getBalance());
     }
@@ -44,6 +52,11 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         Long transactionId = performWithdrawal(account, request.getAmount());
+
+        // Email Notification
+        String subject = "Withdrawal Successful";
+        String body = "You withdrew $" + request.getAmount();
+        notificationService.sendTransactionEmail("demo@inbox.mailtrap.io", subject, body);
 
         return transactionMapper.toResponseModel(transactionId, request.getAmount(), account.getBalance());
     }

@@ -8,6 +8,8 @@ import com.alien.bank.management.system.model.transaction.TransactionResponseMod
 import com.alien.bank.management.system.model.transaction.WithdrawRequestModel;
 import com.alien.bank.management.system.repository.AccountRepository;
 import com.alien.bank.management.system.repository.TransactionRepository;
+import com.alien.bank.management.system.service.NotificationService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +25,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +42,8 @@ public class TransactionServiceImplTest {
     @Mock
     private TransactionMapper transactionMapper;
 
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;
@@ -49,7 +56,7 @@ public class TransactionServiceImplTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        transactionService = new TransactionServiceImpl(accountRepository, transactionRepository, transactionMapper);
+        transactionService = new TransactionServiceImpl(accountRepository, transactionRepository, transactionMapper, notificationService);
 
         account = Account
                 .builder()
@@ -122,6 +129,11 @@ public class TransactionServiceImplTest {
 
         verify(accountRepository, times(1)).save(any(Account.class));
         verify(transactionRepository, times(1)).save(any(Transaction.class));
+        verify(notificationService, times(1))
+            .sendTransactionEmail(eq("demo@inbox.mailtrap.io"), 
+                    eq("Deposit Successful"),
+                    contains("You deposited $" + depositRequest.getAmount()));
+
     }
 
     @Test
@@ -174,6 +186,11 @@ public class TransactionServiceImplTest {
 
         verify(accountRepository, times(1)).save(any(Account.class));
         verify(transactionRepository, times(1)).save(any(Transaction.class));
+        verify(notificationService, times(1))
+            .sendTransactionEmail(eq("demo@inbox.mailtrap.io"), // or eq(account.getUser().getEmail())
+                    eq("Withdrawal Successful"),
+                    contains("You withdrew $" + withdrawRequest.getAmount()));
+
     }
 
     @Test
