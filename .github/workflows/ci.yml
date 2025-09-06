@@ -69,7 +69,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/bank-management-system-springboot:latest
+          tags: ghcr.io/${{ github.repository_owner | lower }}/bank-management-system-springboot:latest
 
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.docker_build.outputs.digest }}"
