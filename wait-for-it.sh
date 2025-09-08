@@ -13,4 +13,5 @@ while ! nc -z $host $port; do
   sleep 1
 done
 
-exec "$@"
+exec "$@"
+
