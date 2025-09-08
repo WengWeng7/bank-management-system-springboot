@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # wait-for-it.sh: Wait until a host and port are available
 # Usage: wait-for-it.sh host:port -- command args
@@ -15,3 +14,4 @@ while ! nc -z $host $port; do
 done
 
 exec "$@"
+
