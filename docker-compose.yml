@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: bankdb
+      POSTGRES_USER: bankuser
+      POSTGRES_PASSWORD: bankpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+    depends_on:
+      - db
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c", "chmod +x /wait-for-it.sh && /wait-for-it.sh db:5432 -- java -jar /usr/local/lib/bank-management-system.jar"]
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
+
+  test:
+    image: maven:3.8.1-openjdk-17-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - SPRING_PROFILES_ACTIVE=staging
+    depends_on:
+      - db
+    entrypoint: ["/bin/sh", "-c", "mvn test"]
+    restart: "no"
+
+volumes:
+  pgdata:
